@@ -1,4 +1,4 @@
-# automate-report-delivery
+# automated-report-delivery
 
 Pull SonarQube scan reports through the Web API, one small script per report type. Each script
 is a few lines of `curl` you can read, copy, or run on its own. Enterprise Edition and above
