@@ -2,10 +2,10 @@
 # Every branch and pull request analyzed for a project: quality gate status, last analysis date,
 # and the AI Code Assurance level of each branch.
 # Usage: ./branches-prs.sh <project-key>  ->  output/<project-key>-branches-prs.json
-: "${SONAR_CLI_SERVER:?set SONAR_CLI_SERVER}" "${SONAR_CLI_TOKEN:?set SONAR_CLI_TOKEN}" "${1:?missing argument - see usage at top of file}"
+: "${SONARQUBE_CLI_SERVER:?set SONARQUBE_CLI_SERVER}" "${SONARQUBE_CLI_TOKEN:?set SONARQUBE_CLI_TOKEN}" "${1:?missing argument - see usage at top of file}"
 set -eo pipefail
 O=$(dirname "$0")/../output; mkdir -p "$O"; D=$(mktemp -d); trap 'rm -rf "$D"' EXIT
-api() { curl -fsS --max-time 60 --retry 3 -u "$SONAR_CLI_TOKEN:" -G "$SONAR_CLI_SERVER$1" "${@:2}"; }
+api() { curl -fsS --max-time 60 --retry 3 -u "$SONARQUBE_CLI_TOKEN:" -G "$SONARQUBE_CLI_SERVER$1" "${@:2}"; }
 api /api/components/show --data-urlencode "component=$1" > /dev/null   # fails on an unknown project key
 api /api/project_branches/list --data-urlencode "project=$1" | jq .branches > "$D/branches.json"
 api /api/project_pull_requests/list --data-urlencode "project=$1" | jq .pullRequests > "$D/prs.json"
