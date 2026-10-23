@@ -7,8 +7,8 @@ is a few lines of `curl` you can read, copy, or run on its own. Enterprise Editi
 ## Setup
 
 ```bash
-export SONAR_HOST_URL=https://sonarqube.example.com
-export SONAR_TOKEN=...      # a User token that can see the projects (not a project analysis token)
+export SONAR_CLI_SERVER=https://sonarqube.example.com
+export SONAR_CLI_TOKEN=...      # a User token that can see the projects (not a project analysis token)
 ```
 
 Needs `bash`, `curl` and `jq`. Some reports (regulatory, SBOM) may require
@@ -21,9 +21,13 @@ additional permissions on the token's user.
 ./scripts/issues.sh my-project release-1  # same, for a branch
 ```
 
-Every script takes `<project-key>` and an optional `[branch]` (the main branch if omitted). Two take an
-extra optional argument before the branch: `report-security.sh` (standard) and `report-sca-sbom.sh`
-(SBOM format). Each script's first lines describe what it pulls and how to call it.
+Every script takes `<project-key>` and, where it makes sense, an optional `[branch]` (the main branch if
+omitted). Two take an extra optional argument before the branch: `report-security.sh` (standard) and
+`report-sca-sbom.sh` (SBOM format). `branches-prs.sh`, `quality-profiles.sh` and `compute-engine.sh` cover all
+branches and take only the project key. Each script's first lines describe what it pulls and how to call it.
+
+Each script checks first that the project and branch exist, so a typo fails with an error instead of
+producing an empty file, and it saves its output only when the whole call succeeds.
 
 ## Output
 
@@ -33,7 +37,7 @@ Everything is written to `output/`. The scripts come in two kinds:
   finished report and saves it: a PDF, a zip bundle, an SBOM, or a risk report CSV. There is nothing
   to parse or assemble; what SonarQube returns is the report. (The SBOM and the per-standard security
   report are JSON documents; they are only pretty-printed, not changed.)
-- **`issues.sh`, `quality-gate.sh`, `analyses.sh`: raw data from the API.** These return JSON, which the
+- **Everything else: raw data from the API.** These return JSON, which the
   scripts pretty-print with `jq`. Use them when you want the underlying data, for example to build your own
   report or feed another tool.
 
@@ -44,6 +48,12 @@ Everything is written to `output/`. The scripts come in two kinds:
 | `issues.sh` | issues (JSON) | `/api/issues/search` |
 | `quality-gate.sh` | quality gate status and conditions | `/api/qualitygates/project_status` |
 | `analyses.sh` | analysis history | `/api/project_analyses/search` |
+| `measures.sh` | current metrics: size, coverage, duplication, ratings, debt, new code | `/api/measures/component` |
+| `measures-history.sh` | metric trend across analyses, for charting | `/api/measures/search_history` |
+| `new-code-period.sh` | what "new code" is measured against | `/api/new_code_periods/show`, `/list` |
+| `branches-prs.sh` | every branch and pull request, with gate status and AI Code Assurance | `/api/project_branches/list`, `/api/project_pull_requests/list` |
+| `quality-profiles.sh` | rule set used per language | `/api/qualityprofiles/search` |
+| `compute-engine.sh` | recent analysis tasks, status and warnings | `/api/ce/activity`, `/api/ce/component` |
 | `report-security.sh` | security report PDF, plus JSON for one standard | `/api/security_reports/download`, `/show` |
 | `report-regulatory.sh` | regulatory report (zip) | `/api/regulatory_reports/download` |
 | `report-portfolio-pdf.sh` | executive PDF, project or portfolio | `/api/governance_reports/download` |
@@ -60,5 +70,5 @@ Everything is written to `output/`. The scripts come in two kinds:
 
 ## Limits
 
-Issue searches return at most 500 results per call and 10,000 in total; `issues.sh` notes how
-to filter or page. An unknown project key or branch returns an empty result rather than an error.
+`issues.sh` pages through results automatically, but the API returns at most 10,000 issues per search; the script
+warns when a project has more, and you can add filters. `measures-history.sh` returns up to 1,000 analyses.
