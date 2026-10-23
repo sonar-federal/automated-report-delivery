@@ -2,10 +2,10 @@
 # Issues (bugs, vulnerabilities, code smells) recorded for a project, as JSON.
 # Usage: ./issues.sh <project-key> [branch]  ->  output/<project-key>-issues.json
 # Pages through the results (500 per call) up to the 10,000 the API allows; for more, add filters.
-: "${SONAR_CLI_SERVER:?set SONAR_CLI_SERVER}" "${SONAR_CLI_TOKEN:?set SONAR_CLI_TOKEN}" "${1:?missing argument - see usage at top of file}"
+: "${SONARQUBE_CLI_SERVER:?set SONARQUBE_CLI_SERVER}" "${SONARQUBE_CLI_TOKEN:?set SONARQUBE_CLI_TOKEN}" "${1:?missing argument - see usage at top of file}"
 set -eo pipefail
 O=$(dirname "$0")/../output; mkdir -p "$O"; D=$(mktemp -d); trap 'rm -rf "$D"' EXIT
-api() { curl -fsS --max-time 60 --retry 3 -u "$SONAR_CLI_TOKEN:" -G "$SONAR_CLI_SERVER$1" "${@:2}"; }
+api() { curl -fsS --max-time 60 --retry 3 -u "$SONARQUBE_CLI_TOKEN:" -G "$SONARQUBE_CLI_SERVER$1" "${@:2}"; }
 api /api/components/show --data-urlencode "component=$1" ${2:+--data-urlencode "branch=$2"} > /dev/null   # fails on an unknown project key or branch
 page() { api /api/issues/search --data-urlencode "componentKeys=$1" ${2:+--data-urlencode "branch=$2"} -d ps=500 -d "p=$3"; }
 page "$1" "$2" 1 > "$D/1.json"

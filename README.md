@@ -7,8 +7,8 @@ is a few lines of `curl` you can read, copy, or run on its own. Enterprise Editi
 ## Setup
 
 ```bash
-export SONAR_CLI_SERVER=https://sonarqube.example.com
-export SONAR_CLI_TOKEN=...      # a User token that can see the projects (not a project analysis token)
+export SONARQUBE_CLI_SERVER=https://sonarqube.example.com
+export SONARQUBE_CLI_TOKEN=...      # a User token that can see the projects (not a project analysis token)
 ```
 
 Needs `bash`, `curl` and `jq`. Some reports (regulatory, SBOM) may require
